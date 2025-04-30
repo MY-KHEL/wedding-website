@@ -3,7 +3,6 @@ import { Couple } from "@/components/ui/homepage/couple";
 import { Events } from "@/components/ui/homepage/events";
 import { Gallery } from "@/components/ui/homepage/gallery";
 import { GiftSection } from "@/components/ui/homepage/gift";
-import { GiftList } from "@/components/ui/homepage/giftList";
 import { GroomSection } from "@/components/ui/homepage/groomSection";
 import { HeroSection } from "@/components/ui/homepage/hero-section";
 import { MobileNav } from "@/components/ui/homepage/mobile-nav";

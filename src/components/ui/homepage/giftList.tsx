@@ -46,8 +46,8 @@ export const GiftList =()=>{
     return(
         <>
         <div className="">
-            {gifts.map((gift)=>(
-                <h1>{gift.name}</h1>
+            {gifts.map((gift,index)=>(
+                <h1 key={index}>{gift.name}</h1>
             ))}
         </div>
         </>
