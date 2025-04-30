@@ -57,7 +57,7 @@ export const GiftSection = () => {
 
 
     fetchGifts();
-  }, []);
+  }, [gifts]);
 
   return (
     <div className="md:px-20 my-10" >
