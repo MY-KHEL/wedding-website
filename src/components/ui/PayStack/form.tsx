@@ -14,14 +14,17 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useEffect } from 'react'
+import { supabase } from '@/lib/supabaseClient'
 
 
 type GiftFormProps = {
-  amount: number
+  amount: number,
+  giftId: string
+  initialContributedAmount: number
  
 }
 
-export const GiftForm =({ amount}: GiftFormProps)=>{
+export const GiftForm =({ amount,giftId,initialContributedAmount}: GiftFormProps)=>{
     const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
 
     
@@ -53,62 +56,75 @@ export const GiftForm =({ amount}: GiftFormProps)=>{
     
       function onSubmit(values: FormData) {
         if (!publicKey) {
-            console.error("Paystack public key not set");
-           
-          }
-          if (!(window as any).PaystackPop) {
-            alert("Payment system not loaded yet, please wait.");
-            return;
-          }
-          const handler = (window as any).PaystackPop.setup({
-            key: publicKey,
-            email:values.email,
-            amount: values.amount * 100,
-            currency: "NGN",
-       
-            callback: async function (response: any) {
-              console.log("Payment successful!", response);            
-              try {
-                const res = await fetch('/api/verify-payment', {
-                  method: 'POST',
-                  body: JSON.stringify({ reference: response.reference }),
-                  headers: {
-                    'Content-Type': 'application/json'
-                  }
-                });
-                const data = await res.json();
-                if (data.status === 'success') {
-                  alert('Payment verified successfully!');
-                } else {
-                  alert('Payment verification failed.');
-                }
-              } catch (error) {
-                console.error('Verification error', error);
-                alert('An error occurred during verification');
-              }
-            },
-            onClose: function () {
-              alert("Transaction was not completed, window closed.");
-            },
-            onError:function(){
-                alert('Error , could not send funds')
-            }
-          });
-
-
-
-        
-          handler.openIframe();
-     
+          console.error("Paystack public key not set");
+          return;
+        }
       
+        if (!(window as any).PaystackPop) {
+          alert("Payment system not loaded yet, please wait.");
+          return;
+        }
+      
+        // Define an async function separately
+        const handlePaymentSuccess = async (response: any) => {
+          try {
+            const res = await fetch("/api/verify-payment", {
+              method: "POST",
+              body: JSON.stringify({ reference: response.reference }),
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+      
+            const data = await res.json();
+      
+            if (data.status === "success") {
+              // Ensure amount, initialContributedAmount, and giftId are accessible here
+              const { error } = await supabase
+                .from("gifts")
+                .update({
+                  contributed_amount: amount + initialContributedAmount,
+                })
+                .eq("id", giftId);
+      
+              if (error) {
+                console.error("Supabase update error:", error.message);
+              } else {
+                alert("Contribution recorded successfully!");
+              }
+            } else {
+              alert("Payment verification failed.");
+            }
+          } catch (err) {
+            console.error("Verification error:", err);
+            alert("An error occurred during verification");
+          }
+        };
+      
+        const handler = (window as any).PaystackPop.setup({
+          key: publicKey,
+          email: values.email,
+          amount: values.amount * 100,
+          currency: "NGN",
+          callback: function (response: any) {
+            // ✅ Call the async function
+            handlePaymentSuccess(response);
+          },
+          onClose: function () {
+            alert("Transaction was not completed, window closed.");
+          },
+        });
+      
+        handler.openIframe();
       }
+      
     return(
         <>
 
         <div className=" mt-4 px-3 z-50">
 
-        <Form {...form} >
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <Form {...form} >
         <FormField
           control={form.control}
           name="firstName"
@@ -166,8 +182,8 @@ export const GiftForm =({ amount}: GiftFormProps)=>{
           )}
         />
         <button type="submit" className='bg-green-700 w-full text-white p-3 text-md'>Pay</button>
-      </form>
     </Form>
+      </form>
         </div>
         </>
     )

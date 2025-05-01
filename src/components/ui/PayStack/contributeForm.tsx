@@ -13,14 +13,19 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { supabase } from '@/lib/supabaseClient'
+import { useState } from 'react'
 
 
 type GiftFormProps = {
-  amount: number
-  
+  amount: number,
+  giftId: string
+ 
+ 
 }
 
-export const GiftContributeForm =({ amount }: GiftFormProps)=>{
+export const GiftContributeForm =({ amount,giftId}: GiftFormProps)=>{
+  const [initialContributedAmount,setInitialContributedAmount] =useState<number>(0)
     const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY
 
     
@@ -37,45 +42,76 @@ export const GiftContributeForm =({ amount }: GiftFormProps)=>{
           firstName: "",
           email:"",
           lastName:"",
-          amount:0
+          amount:amount
         },
       })
     
-      function onSubmit(values: FormData) {
-        if (!publicKey) {
-            console.error("Paystack public key not set");
-           
-          }
-        
-          const handler = (window as any).PaystackPop.setup({
-            key: publicKey,
-            email:values.email,
-            amount: values.amount * 100,
-            currency: "NGN",
-       
-            callback: function (response: any) {
-              alert("Payment complete! Reference: " + response.reference);
-          
-              const balance = (amount-values.amount )
-              
-              console.log(amount,values.amount)
-            },
-            onClose: function () {
-              alert("Transaction was not completed, window closed.");
-            },
-            onError:function(){
-                alert('Error , could not send funds')
-            }
-          });
-
-
-
-        
-          handler.openIframe();
-     
-      
-      }
-    return(
+       function onSubmit(values: FormData) {
+              if (!publicKey) {
+                console.error("Paystack public key not set");
+                return;
+              }
+            
+              if (!(window as any).PaystackPop) {
+                alert("Payment system not loaded yet, please wait.");
+                return;
+              }
+            
+              // Define an async function separately
+              const handlePaymentSuccess = async (response: any) => {
+                try {
+                  const res = await fetch("/api/verify-payment", {
+                    method: "POST",
+                    body: JSON.stringify({ reference: response.reference }),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  });
+                  console.log("Reference sent to backend:", response.reference);
+                 
+                  
+            
+                  const data = await res.json();
+            
+                  if (data.status === "success") {
+                 
+                    const { error } = await supabase
+                      .from("gifts")
+                      .update({
+                        contributed_amount: amount += initialContributedAmount
+                      })
+                      .eq("id", giftId);
+                     
+                    if (error) {
+                      console.error("Supabase update error:", error.message);
+                    } else {
+                      alert("Contribution recorded successfully!");
+                    }
+                  } else {
+                    alert("Payment verification failed.");
+                  }
+                } catch (err) {
+                  console.error("Verification error:", err);
+                  alert("An error occurred during verification");
+                }
+              };
+            
+              const handler = (window as any).PaystackPop.setup({
+                key: publicKey,
+                email: values.email,
+                amount: values.amount * 100,
+                currency: "NGN",
+                callback: function (response: any) {
+                  // ✅ Call the async function
+                  handlePaymentSuccess(response);
+                },
+                onClose: function () {
+                  alert("Transaction was not completed, window closed.");
+                },
+              });
+            
+              handler.openIframe();
+            }    return(
         <>
 
         <div className=" mt-4 px-3 z-50">
@@ -131,7 +167,11 @@ export const GiftContributeForm =({ amount }: GiftFormProps)=>{
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input type='number' placeholder="Amount" {...field} />
+                <Input type='number' placeholder="Amount" {...field} onChange={(e) => {
+                                                      const value = Number(e.target.value);
+                                                      setInitialContributedAmount(value);
+                                                      field.onChange(e); // retain React Hook Form syncing
+                                                    }}/>
               </FormControl>
            
               <FormMessage />

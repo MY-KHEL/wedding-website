@@ -38,7 +38,7 @@ export const GroomSection = () => {
     }
     return (
         <>
-            <div className=" px-2 md:px-20 my-4 mt-16 h-screen" >
+            <div className=" px-6  md:px-6 lg:px-20 my-4 mt-16 " >
             <div className="text-center text-md">
                 <h1 className="text-4xl text-bold my-4 ">Groom Section</h1>
                 <p className="mt-6 leading-7 mb-8">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Consectetur nam odit ut ipsam maxime praesentium minima, dolorem distinctio tempore, odio consequatur reprehenderit dolor quod incidunt repudiandae cumque eius veritatis voluptates quis? Commodi at autem illum id deserunt quo minima deleniti doloribus cum quas nulla voluptatem soluta quia quibusdam libero aut totam itaque molestias, tempora dolorum hic nihil omnis aperiam? Optio facilis dolores corrupti, sapiente minima eveniet cumque in et nesciunt.</p>
@@ -46,7 +46,7 @@ export const GroomSection = () => {
                </div>
                 <div className="grid md:grid-cols-4 gap-2 mt-16">
                     {images.map((item, i) => (
-                        <div className=" w-full h-75 bg-purple-400 rounded-2xl cursor-pointer" key={i} onClick={() => { handleImage(i) }}>
+                        <div className=" w-full h-75 bg-gray-400 rounded-2xl cursor-pointer" key={i} onClick={() => { handleImage(i) }}>
                             <h1 className="text-lg text-white flex justify-center items-center ">{item.set}</h1>
                         </div>
                     ))}

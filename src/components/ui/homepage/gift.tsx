@@ -12,19 +12,20 @@ import {
 } from "../dialog"
 import { GiftForm } from "../PayStack/form"
 import { GiftContributeForm } from "../PayStack/contributeForm"
-import { collection, getDocs } from "firebase/firestore"
+
 import { useEffect, useState } from "react"
-import { db } from "../../../../firebase/clientApp"
+
 import { Progress } from "@/components/ui/progress"
+import { fetchGifts } from "@/services/giftServices"
 
 
 type Gift = {
   id: string;
   name: string;
   price: number;
-  imageUrl: string;
-  amountContributed: number;
-  isAvailable: boolean;
+  image: string;
+  contributed_amount: number;
+  is_available: boolean;
 };
 
 
@@ -34,46 +35,32 @@ export const GiftSection = () => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const fetchGifts = async () => {
-      try {
-        const giftsRef = collection(db, "gifts")
-        const snapshot = await getDocs(giftsRef)
-        const giftsData = snapshot.docs.map((doc) => (
-          {
-            id: doc.id,
-            ...doc.data()
-          }
-        )) as Gift[];
-        setGifts(giftsData)
-        console.log(gifts);
-
-      } catch (error) {
-        console.error("Error fetching Gifts", error);
-
-      } finally {
-        setIsLoading(false)
+      const load =async ()=>{
+            const data = await fetchGifts()
+            setGifts(data);
+            
       }
-    }
+      load()
+      
 
-
-    fetchGifts();
-  }, [gifts]);
+    
+  }, []);
 
   return (
-    <div className="md:px-20 my-10" >
+    <div className=" px-6 md:px-6 lg:px-20 my-10" >
       <h1 className="text-3xl  text-center font-semibold mb-4 ">Gift Us </h1>
-      <div className="grid md:grid-cols-4 gap-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
         {gifts.map((item) => (
           <div className="col-span-1" key={item.id}>
-            <Card className="pb-2 h-[450px]">
+            <Card className="pb-2 h-min-[450px]">
               <CardContent>
                 <div className="bg-black/70  my-2 h-[300px] w-full p-0"></div>
                 <div className=" flex justify-between items-center">
                   <div className="">
                     <h1 className="text-sm">{item.name}</h1>
-                    {item.price === 0 ? "Already Given" : <p>₦{item.price.toLocaleString()}</p>}
+                    {item.price === 0 ? "Already Given" : <p>₦{(item.price-item.contributed_amount).toLocaleString()}</p>}
                   </div>
-                  <Progress value={33} className="w-1/2" />
+                  <Progress value={(item.contributed_amount/item.price)*100} className="w-1/2" />
 
                 </div>
 
@@ -90,6 +77,7 @@ export const GiftSection = () => {
                       <DialogHeader>
                         <DialogTitle className="text-black md:text-2xl p-3 w-3/4 mx-auto">
                           Joy is found through giving to others, not by what you receive.
+                          <GiftForm amount={item.price} giftId={item.id} initialContributedAmount={item.contributed_amount}/>
                         </DialogTitle>
 
                       </DialogHeader>
@@ -105,7 +93,8 @@ export const GiftSection = () => {
                         <DialogTitle className="text-black  text-center md:text-2xl p-3 w-3/4 mx-auto">
                           Joy is found through giving to others, not by what you receive.
                         </DialogTitle>
-
+                    
+                        <GiftContributeForm amount={0} giftId={item.id} />
                       </DialogHeader>
                     </DialogContent>
                   </Dialog>

@@ -37,7 +37,7 @@ useEffect(() => {
   }, [api])
 
   useEffect(()=>{
-    const target = new Date("2025-04-25T23:59:59")
+    const target = new Date("2025-05-25T23:59:59")
     const interval = setInterval(()=>{
       const now = new Date()
 
@@ -72,7 +72,7 @@ useEffect(() => {
                 <div className="flex justify-center items-center  " >
                   <div className="mt-50">
 
-                  <h1 className="text-white text-7xl font-semibold">{days} : {hours} : {minutes} : {seconds}</h1>
+                  <h1 className="text-white text-2xl md:text-5xl lg:text-7xl font-semibold">{days} : {hours} : {minutes} : {seconds}</h1>
                   </div>
                 </div>
 

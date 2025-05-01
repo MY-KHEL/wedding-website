@@ -55,7 +55,7 @@ export function NavBar() {
   }, [])
 
   return (
-    <div className="hidden md:block">
+    <div className="hidden lg:block">
       <NavigationMenu className="w-full bg-white py-2">
         <NavigationMenuList>
           {components.map((item) => (

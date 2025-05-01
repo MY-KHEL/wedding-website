@@ -19,7 +19,7 @@ export default function Home() {
       </section>
 
       {/* Mobile and Desktop Navigation */}
-      <MobileNav />
+     
       <NavigationBar />
       {/* <NavBar /> */}
 
@@ -48,7 +48,7 @@ export default function Home() {
       </section>
 
 
-      <section id="gifting" className="h-screen">
+      <section id="gifting" className="">
         <GiftSection />
       </section>
 
